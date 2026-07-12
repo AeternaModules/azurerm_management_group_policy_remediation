@@ -1,3 +1,7 @@
+output "management_group_policy_remediations_id" {
+  description = "Map of id values across all management_group_policy_remediations, keyed the same as var.management_group_policy_remediations"
+  value       = { for k, v in azurerm_management_group_policy_remediation.management_group_policy_remediations : k => v.id }
+}
 output "management_group_policy_remediations_failure_percentage" {
   description = "Map of failure_percentage values across all management_group_policy_remediations, keyed the same as var.management_group_policy_remediations"
   value       = { for k, v in azurerm_management_group_policy_remediation.management_group_policy_remediations : k => v.failure_percentage }
