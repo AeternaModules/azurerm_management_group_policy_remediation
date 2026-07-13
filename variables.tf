@@ -23,33 +23,30 @@ EOT
     policy_definition_reference_id = optional(string)
     resource_count                 = optional(number)
   }))
-  # --- Unconfirmed validation candidates, derived from azurerm_management_group_policy_remediation's provider source ---
-  # Not auto-enabled: either a bespoke provider validator we can't safely translate,
-  # or a path that crosses a list-typed block (needs its own for_each wrapping).
-  # Review, translate into a real validation{} block above, and delete once confirmed.
-  # path: name
-  #   source:    [from validate.RemediationName] !ok
-  # path: name
-  #   source:    [from validate.RemediationName] len(v) == 0 || len(v) > 260
-  # path: name
-  #   source:    [from validate.RemediationName] strings.ContainsAny(v, invalidCharacters)
-  # path: name
-  #   source:    [from validate.RemediationName] v != strings.ToLower(v)
-  # path: management_group_id
-  #   source:    [from managmentGroupValidate.ManagementGroupID] !ok
-  # path: management_group_id
-  #   source:    [from managmentGroupValidate.ManagementGroupID] err != nil
-  # path: policy_assignment_id
-  #   source:    [from validate.PolicyAssignmentID] !ok
-  # path: policy_assignment_id
-  #   source:    [from validate.PolicyAssignmentID] err != nil
-  # path: failure_percentage
-  #   source:    validation.FloatBetween(...) - no translation rule yet, add one
-  # path: parallel_deployments
-  #   source:    validation.IntPositive(...) - no translation rule yet, add one
-  # path: resource_count
-  #   source:    validation.IntPositive(...) - no translation rule yet, add one
-  # path: location_filters[*]
-  #   source:    location.EnhancedValidate: no recognizable `if ... { errors = append(...) }` pattern - read it by hand
+  validation {
+    condition = alltrue([
+      for k, v in var.management_group_policy_remediations : (
+        v.failure_percentage == null || (v.failure_percentage >= 0 && v.failure_percentage <= 1.0)
+      )
+    ])
+    error_message = "must be between 0 and 1.0"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.management_group_policy_remediations : (
+        v.parallel_deployments == null || (v.parallel_deployments > 0)
+      )
+    ])
+    error_message = "must be positive"
+  }
+  validation {
+    condition = alltrue([
+      for k, v in var.management_group_policy_remediations : (
+        v.resource_count == null || (v.resource_count > 0)
+      )
+    ])
+    error_message = "must be positive"
+  }
+  # Note: 9 additional provider-side validators are enforced at apply time but not mirrored as validation{} blocks here (bespoke or non-mechanically-translatable).
 }
 
